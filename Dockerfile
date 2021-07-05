@@ -27,8 +27,8 @@ RUN set -eux; \
     ; \
     docker-php-ext-install -j$(nproc) gd; \
     apt-mark auto '.*' > /dev/null; \
-	apt-mark manual $savedAptMark > /dev/null; \
-	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+    apt-mark manual $savedAptMark > /dev/null; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
 
 RUN set -eux; \
     pecl install redis-5.1.1; \
@@ -45,8 +45,8 @@ RUN set -eux; \
     pecl install memcached-3.0.4; \
     docker-php-ext-enable memcached; \
     apt-mark auto '.*' > /dev/null; \
-	apt-mark manual $savedAptMark > /dev/null; \
-	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+    apt-mark manual $savedAptMark > /dev/null; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
 
 RUN set -eux; \
     apt-get -y update; \
@@ -56,8 +56,8 @@ RUN set -eux; \
     docker-php-ext-configure intl; \
     docker-php-ext-install intl; \
     apt-mark auto '.*' > /dev/null; \
-	apt-mark manual $savedAptMark > /dev/null; \
-	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+    apt-mark manual $savedAptMark > /dev/null; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
 
 # PDO & Zip
 RUN set -eux; \
@@ -67,8 +67,8 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*; \
     docker-php-ext-install pdo pdo_mysql zip; \
     apt-mark auto '.*' > /dev/null; \
-	apt-mark manual $savedAptMark > /dev/null; \
-	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+    apt-mark manual $savedAptMark > /dev/null; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
 
 RUN set -eux; \
     apt-get -y update; \
@@ -79,8 +79,8 @@ RUN set -eux; \
     docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/; \
     docker-php-ext-install ldap; \
     apt-mark auto '.*' > /dev/null; \
-	apt-mark manual $savedAptMark > /dev/null; \
-	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+    apt-mark manual $savedAptMark > /dev/null; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
 
 #RUN apt-get update && \
 #    apt-get install -y software-properties-common && \
@@ -94,8 +94,8 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*; \
     docker-php-ext-install interbase; \
     apt-mark auto '.*' > /dev/null; \
-	apt-mark manual $savedAptMark > /dev/null; \
-	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+    apt-mark manual $savedAptMark > /dev/null; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
 
 RUN set -eux; \
     apt-get update -y; \
@@ -104,8 +104,8 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*; \
     docker-php-ext-install soap; \
     apt-mark auto '.*' > /dev/null; \
-	apt-mark manual $savedAptMark > /dev/null; \
-	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+    apt-mark manual $savedAptMark > /dev/null; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
 
 RUN set -eux; \
     apt-get update; \
@@ -115,6 +115,6 @@ RUN set -eux; \
     ln -s /usr/bin/nodejs /usr/local/bin/node;
 
 # Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=1.10.16
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=1.10.22
 
 RUN mkdir ~/.ssh && ln -s /run/secrets/host_ssh_key ~/.ssh/id_rsa
