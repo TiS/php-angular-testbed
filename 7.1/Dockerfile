@@ -1,4 +1,5 @@
 FROM php:7.1-fpm
+COPY common/bin/clean-ext-install /usr/local/bin
 
 # Git && curl
 RUN set -eux; \
@@ -6,106 +7,39 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends git curl; \
     rm -rf /var/lib/apt/lists/*;
 
-RUN set -eux; \
-    apt-get -y update; \
-    # Install non-dev packages before checking apt mark
-    apt-get install -y --no-install-recommends \
-        libfreetype6 \
-        libjpeg62-turbo \
-    ; \
-    savedAptMark="$(apt-mark showmanual)"; \
-    apt-get install -y --no-install-recommends \
-        libfreetype6-dev \
-        libjpeg62-turbo-dev \
-        libpng-dev \
-    ; \
-    rm -rf /var/lib/apt/lists/*; \
-    docker-php-ext-configure gd \
-        --with-freetype-dir=/usr/include/ \
-        --with-jpeg-dir=/usr/include/ \
-        --with-png-dir=/usr/include/ \
-    ; \
-    docker-php-ext-install -j$(nproc) gd; \
-    apt-mark auto '.*' > /dev/null; \
-    apt-mark manual $savedAptMark > /dev/null; \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+RUN clean-ext-install \
+    -e gd \
+    -d libfreetype6-dev \
+    -d libjpeg62-turbo-dev \
+    -d libpng-dev \
+    -p libfreetype6 \
+    -p libjpeg62-turbo \
+    -c "--with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/"
 
-RUN set -eux; \
-    pecl install redis-5.1.1; \
-    pecl install xdebug-2.8.1; \
-    docker-php-ext-enable redis xdebug; \
-    rm -rf /tmp/pear ~/.pearrc;
+RUN clean-ext-install -x redis-5.1.1 -x xdebug-2.8.1;
 
-RUN set -eux; \
-    apt-get -y update; \
-    apt-get install -y --no-install-recommends libhashkit2 libmemcached11 libmemcachedutil2; \
-    savedAptMark="$(apt-mark showmanual)"; \
-    apt-get install -y --no-install-recommends libmemcached-dev zlib1g-dev; \
-    rm -rf /var/lib/apt/lists/*; \
-    pecl install memcached-3.0.4; \
-    docker-php-ext-enable memcached; \
-    apt-mark auto '.*' > /dev/null; \
-    apt-mark manual $savedAptMark > /dev/null; \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+RUN clean-ext-install \
+    -x memcached-3.0.4  \
+    -p libhashkit2  \
+    -p libmemcached11  \
+    -p libmemcachedutil2  \
+    -d libmemcached-dev  \
+    -d zlib1g-dev;
 
-RUN set -eux; \
-    apt-get -y update; \
-    savedAptMark="$(apt-mark showmanual)"; \
-    apt-get install -y libicu-dev; \
-    rm -rf /var/lib/apt/lists/*; \
-    docker-php-ext-configure intl; \
-    docker-php-ext-install intl; \
-    apt-mark auto '.*' > /dev/null; \
-    apt-mark manual $savedAptMark > /dev/null; \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+RUN clean-ext-install -e intl -d libicu-dev -c " "
 
 # PDO & Zip
-RUN set -eux; \
-    apt-get -y update; \
-    savedAptMark="$(apt-mark showmanual)"; \
-    apt-get install -y zlib1g-dev; \
-    rm -rf /var/lib/apt/lists/*; \
-    docker-php-ext-install pdo pdo_mysql zip; \
-    apt-mark auto '.*' > /dev/null; \
-    apt-mark manual $savedAptMark > /dev/null; \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+RUN clean-ext-install -e pdo -e pdo_mysql -e zip -d zlib1g-dev
 
-RUN set -eux; \
-    apt-get -y update; \
-#    apt-get install -y libldap2; \
-    savedAptMark="$(apt-mark showmanual)"; \
-    apt-get install -y --no-install-recommends libldap2-dev; \
-    rm -rf /var/lib/apt/lists/*; \
-    docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/; \
-    docker-php-ext-install ldap; \
-    apt-mark auto '.*' > /dev/null; \
-    apt-mark manual $savedAptMark > /dev/null; \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+RUN clean-ext-install -e ldap -d libldap2-dev -c "--with-libdir=lib/x86_64-linux-gnu/"
 
 #RUN apt-get update && \
 #    apt-get install -y software-properties-common && \
 #    rm -rf /var/lib/apt/lists/*
 
-RUN set -eux; \
-    apt-get -y update; \
-    apt-get install -y --no-install-recommends libfbclient2 libib-util; \
-    savedAptMark="$(apt-mark showmanual)"; \
-    apt-get install -y --no-install-recommends firebird-dev; \
-    rm -rf /var/lib/apt/lists/*; \
-    docker-php-ext-install interbase; \
-    apt-mark auto '.*' > /dev/null; \
-    apt-mark manual $savedAptMark > /dev/null; \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+RUN clean-ext-install -e interbase -p libfbclient2 -p libib-util -d firebird-dev
 
-RUN set -eux; \
-    apt-get update -y; \
-    savedAptMark="$(apt-mark showmanual)"; \
-    apt-get install -y libxml2-dev; \
-    rm -rf /var/lib/apt/lists/*; \
-    docker-php-ext-install soap; \
-    apt-mark auto '.*' > /dev/null; \
-    apt-mark manual $savedAptMark > /dev/null; \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+RUN clean-ext-install -e soap -d libxml2-dev
 
 RUN set -eux; \
     apt-get update; \

@@ -36,11 +36,9 @@ do
     continue
   fi;
 
-  cd "$version"
 	echo "Building version $version START"
-	docker build . -t $REPOSITORY:"$version"
+	docker build -f "./${version}/Dockerfile" . -t $REPOSITORY:"$version"
 	echo "Building version $version END"
-	cd ..
 done
 
 if [[ ${UPLOAD} != 1 ]]; then

@@ -2,19 +2,26 @@
 
 declare -a LIB_DEV
 declare -a LIB_PROD
+declare -a EXTENSIONS
+declare -a PECL_EXTENSIONS
+PECL_EXT_PATTERN="([^-]*)(-(.*))?"
 
-while getopts d:p:e: flag
+while getopts d:p:e:c:x: flag
 do
     case "${flag}" in
         d) LIB_DEV+=("${OPTARG}") ;;
         p) LIB_PROD+=("${OPTARG}") ;;
-        e) EXTENSION=${OPTARG} ;;
+        e) EXTENSIONS+=("${OPTARG}") ;;
+        x) PECL_EXTENSIONS+=("${OPTARG}") ;;
+        c) CONFIGURE=${OPTARG} ;;
         *) echo -e "\n\tUnknown flag ${flag}\n"; exit 1;;
     esac
 done
 
-if [[ -z "${EXTENSION}" ]]; then
-  echo "Provide an extension to install using flag -e <EXTENSION>";
+set -e
+
+if [[ -z "${EXTENSIONS[*]}" && -z "${PECL_EXTENSIONS[*]}" ]]; then
+  echo "Provide an extension(s) to install using flag -e <EXTENSION> or -x <PECL_EXTENSION>";
 
   exit 1;
 fi
@@ -23,7 +30,7 @@ apt-get -y update
 
 if [[ -n "${LIB_PROD[*]}" ]]; then
   echo "Installing PROD libraries ${LIB_PROD[*]}"
-#  apt-get install -y --no-install-recommends "${LIB_PROD[@]}"
+  apt-get install -y --no-install-recommends "${LIB_PROD[@]}"
 fi
 
 savedAptMark="$(apt-mark showmanual)"
@@ -34,7 +41,27 @@ if [[ -n "${LIB_DEV[*]}" ]]; then
 fi
 
 rm -rf /var/lib/apt/lists/*
-docker-php-ext-install "${EXTENSION}"
+
+if [[ -n "${CONFIGURE}" ]]; then
+  # shellcheck disable=SC2086
+  docker-php-ext-configure ${EXTENSIONS[*]} ${CONFIGURE}
+fi
+
+if [[ -n "${EXTENSIONS[*]}" ]]; then
+  # shellcheck disable=SC2086
+  docker-php-ext-install -j"$(nproc)" ${EXTENSIONS[*]}
+fi
+
+for pecl_extension in "${PECL_EXTENSIONS[@]}"
+do
+  [[ $pecl_extension =~ $PECL_EXT_PATTERN ]]
+  pecl install "$pecl_extension"
+  docker-php-ext-enable "${BASH_REMATCH[1]}"
+done
+
+rm -rf /tmp/pear ~/.pearrc;
+
 apt-mark auto '.*' > /dev/null
-apt-mark manual "$savedAptMark" > /dev/null
+# shellcheck disable=SC2086
+apt-mark manual $savedAptMark > /dev/null
 apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
