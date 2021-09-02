@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+declare -a LIB_DEV
+declare -a LIB_PROD
+
+while getopts d:p:e: flag
+do
+    case "${flag}" in
+        d) LIB_DEV+=("${OPTARG}") ;;
+        p) LIB_PROD+=("${OPTARG}") ;;
+        e) EXTENSION=${OPTARG} ;;
+        *) echo -e "\n\tUnknown flag ${flag}\n"; exit 1;;
+    esac
+done
+
+if [[ -z "${EXTENSION}" ]]; then
+  echo "Provide an extension to install using flag -e <EXTENSION>";
+
+  exit 1;
+fi
+
+apt-get -y update
+
+if [[ -n "${LIB_PROD[*]}" ]]; then
+  echo "Installing PROD libraries ${LIB_PROD[*]}"
+#  apt-get install -y --no-install-recommends "${LIB_PROD[@]}"
+fi
+
+savedAptMark="$(apt-mark showmanual)"
+
+if [[ -n "${LIB_DEV[*]}" ]]; then
+  echo "Installing DEV libraries ${LIB_DEV[*]}"
+  apt-get install -y --no-install-recommends "${LIB_DEV[@]}"
+fi
+
+rm -rf /var/lib/apt/lists/*
+docker-php-ext-install "${EXTENSION}"
+apt-mark auto '.*' > /dev/null
+apt-mark manual "$savedAptMark" > /dev/null
+apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
