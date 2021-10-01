@@ -3,6 +3,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 REPOSITORY=tstruczynski/php-angular-testbed
 VERSIONS=( 7.1 7.2 7.3 7.4)
+LATEST=7.1
 UPLOAD=0
 
 declare -A VERSION_MAP
@@ -36,8 +37,15 @@ do
     continue
   fi;
 
+  if [[ "$version" == "${LATEST}" ]]; then
+    LATEST_TAG="-t ${REPOSITORY}:latest"
+  else
+    LATEST_TAG=""
+  fi
+
 	echo "Building version $version START"
-	docker build -f "./${version}/Dockerfile" . -t $REPOSITORY:"$version"
+	# shellcheck disable=SC2086
+	docker build -f "./${version}/Dockerfile" . -t $REPOSITORY:"$version" ${LATEST_TAG}
 	echo "Building version $version END"
 done
 

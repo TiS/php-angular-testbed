@@ -59,7 +59,7 @@ RUN set -eux; \
 # PDO & Zip
 RUN set -eux; \
     apt-get -y update; \
-    apt-get install -y --no-install-recommends unzip; \
+    apt-get install -y --no-install-recommends unzip zip libzip4; \
     savedAptMark="$(apt-mark showmanual)"; \
     apt-get install -y zlib1g-dev libzip-dev; \
     rm -rf /var/lib/apt/lists/*; \
@@ -106,6 +106,17 @@ RUN set -eux; \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
 
 RUN set -eux; \
+    apt-get update -y; \
+    savedAptMark="$(apt-mark showmanual)"; \
+    apt-get install -y zlib1g-dev; \
+    rm -rf /var/lib/apt/lists/*; \
+    pecl install xlswriter; \
+    docker-php-ext-enable xlswriter; \
+    apt-mark auto '.*' > /dev/null; \
+    apt-mark manual $savedAptMark > /dev/null; \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+
+RUN set -eux; \
     apt-get update; \
     curl -sL https://deb.nodesource.com/setup_10.x | bash -; \
     apt-get -y install nodejs; \
@@ -113,6 +124,6 @@ RUN set -eux; \
     ln -s /usr/bin/nodejs /usr/local/bin/node;
 
 # Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --version=1.10.22
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
 RUN mkdir ~/.ssh && ln -s /run/secrets/host_ssh_key ~/.ssh/id_rsa
